@@ -1,34 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 import QuestionForm from './QuestionForm'
 import AnswerForm from './AnswerForm'
-import './App.css';
+import './App.css'
+
+var myHeaders = new Headers()
+var backHost = 'http://localhost:3000/api/'
+var basicHeader = {
+  method: 'POST',
+  headers: myHeaders,
+  mode: 'cors',
+  cache: 'default'
+}
 
 function App() {
-  const [subject, setSubject ] = useState(0)
+  const [subject, setSubject ] = useState('aed1')
   const [page, setPage ] = useState(-1)
   const [list, setList] = useState([])
   const [subjectsList, setSubjects] = useState([])
 
-  useEffect(() => {
-    setList([
-      {
-        question: 'lorem ipsum, lorem ipsum lorem ipsum lorem ipsum',
-      },
-      {
-        question: 'lorem ipsum, lorem ipsum lorem ipsum lorem ipsum',
-        answer: 'lorem ipsum lorem ipsum lorem ipsum',
-      },
-      {
-        question: 'lorem ipsum, lorem ipsum lorem ipsum lorem ipsum',
-      },
-      {
-        question: 'lorem ipsum, lorem ipsum lorem ipsum lorem ipsum',
-        answer: 'lorem ipsum lorem ipsum lorem ipsum',
-      },
-    ])
+  const sendQuestion = title => {
+    const body = JSON.stringify({ name: 'Aluno', title })
+    fetch(`${backHost}${subject}/question`, { ...basicHeader, body })
+    .then(response => console.log('sucesso ', response))
+    setList([...list, { question: title }])
+  }
 
-    setSubjects([ "História", "AED1", "Filosofia", ])
-  }, []);
+  const sendAnswer = (title, text) => {
+    const body = JSON.stringify({ name: 'Monitor', title, text })
+    const updateList = [...list]
+    let updateIndex = -1;
+    updateList.forEach((item, key) => {
+      if(item.question === title)
+        updateIndex = key
+    })
+    updateList[updateIndex] = { ...updateList[updateIndex], answer: text }
+    fetch(`${backHost}${subject}/answer`, { ...basicHeader, body })
+    .then(response => console.log('sucesso ', response))
+    setList(updateList)
+  }
+
+  useEffect(() => {
+    setList([])
+    setSubjects([ 'historia', 'aed1', 'filosofia', ])
+  }, [])
 
   const QuestionsList = () => {
     return <>
@@ -36,7 +50,9 @@ function App() {
         <h5>Pergunta</h5>
         <p>{item.question}</p>
         <h5>Resposta</h5>
-        <p>{item.answer ? item.answer : page === 1 ? <AnswerForm subject={subject} /> : 'Sem resposta até o momento.'}</p>
+        <p>{item.answer ? item.answer : page === 1 ? (
+          <AnswerForm question={item.question} event={sendAnswer} />
+        ) : 'Sem resposta até o momento.'}</p>
       </div>)}
     </>
   }
@@ -65,7 +81,7 @@ function App() {
     return <h2>
       Painel monitor
       <button onClick={() => { setPage(0) }}>Voltar</button>
-      <QuestionsList subject={subject} />
+      <QuestionsList />
     </h2>
   }
 
@@ -73,21 +89,19 @@ function App() {
     return <h2>
       Painel Aluno
       <button onClick={() => { setPage(0) }}>Voltar</button>
-      <QuestionForm />
+      <QuestionForm event={sendQuestion} />
       <QuestionsList />
     </h2>
   }
 
-  return (
-    <div className="App">
-      <div className="questions-area">
-        {page === -1 && <SubjectPage />}
-        {page === 0 && <UserTypePage />}
-        {page === 1 && <MonitorPage />}
-        {page === 2 && <StudentPage />}
-      </div>
+  return <div className='App'>
+    <div className='questions-area'>
+      {page === -1 && <SubjectPage />}
+      {page === 0 && <UserTypePage />}
+      {page === 1 && <MonitorPage />}
+      {page === 2 && <StudentPage />}
     </div>
-  );
+  </div>
 }
 
-export default App;
+export default App

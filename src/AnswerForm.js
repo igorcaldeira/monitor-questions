@@ -1,15 +1,9 @@
 import React from 'react'
 import { Formik } from 'formik';
 
-const sendAnswer = (ans) => {
-  alert(ans)
-}
-
-const AnswerForm = () => <Formik
+const AnswerForm = ({ question, event }) => <Formik
   initialValues={{}}
-  onSubmit={(values, actions) => {
-    sendAnswer(values.answer)
-  }}
+  onSubmit={values => event(question, values.answer)}
   render={props => (
     <form onSubmit={props.handleSubmit}>
       <input
